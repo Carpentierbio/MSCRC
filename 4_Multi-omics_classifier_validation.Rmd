@@ -1,0 +1,55 @@
+---
+title: "4_Multi-omics_classifier_validation"
+author: "Lingli HE"
+date: "2024-07-31"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r cars}
+rm(list = ls())
+
+require(caret)
+library(openxlsx)
+
+
+### 1 Multi-omics classifier validation
+
+# 1.1 Prepare classifier
+load("multi-omics_classifier.rda")
+model = model_fit
+rm(model_fit)
+
+model_pre = function(dataPre) {
+  # dataPre is dataframe with samples in rows and fatures in columns. The column names of dataPre should be X1, X2, ..., X196.
+  model_pre = predict(model, newdata = as.data.frame(dataPre), type = "prob")
+  prob_pre = model_pre
+  model_pre = apply(model_pre, 1, function(t) colnames(model_pre)[which.max(t)]) 
+  Label = as.factor(model_pre)
+  names(Label) = rownames(dataPre)
+  result <- list(label=Label, prob=prob_pre) 
+  
+  return(result)
+}
+
+
+# 1.2 Prediction
+# CIT cohort for axample
+dataset = "CIT_GSE39582"
+load("CIT_GSE39582_data.rda")
+result = model_pre(dataPre = dataPre)
+wb <- createWorkbook()
+addWorksheet(wb, dataset)
+df = integrate_data(result)
+writeData(wb, sheet = dataset, x = df)
+saveWorkbook(wb, "./path/to/prediction_of_CIT_GSE39582.xlsx", overwrite = TRUE)
+
+
+
+```
+

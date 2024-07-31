@@ -1,0 +1,82 @@
+---
+title: "2_Multi-omics_data_fusion_and_subtyping"
+author: "Lingli HE"
+date: "2024-07-31"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r}
+rm(list = ls())
+
+require(PMA)
+require(ConsensusClusterPlus)
+
+
+load( file = "mRNAscaled.rda")
+load( file = "miRNAscaled.rda")
+load( file = "methyscaled.rda")
+
+N_ge = dim(mRNAscaled)[1]
+N_mir = dim(miRNAscaled)[1]
+N_met = dim(methyscaled)[1]
+
+
+### 1 Multi-omics data fusion with MultiCCA and a weighted average
+
+# 1.1 Perform MultiCCA
+# Ensure samples are in rows
+xlist <- list(t(mRNAscaled), t(miRNAscaled), t(methyscaled)) 
+minimalk = min(c(nrow(mRNAscaled), nrow(miRNAscaled), nrow(methyscaled),  ncol(miRNAscaled)))
+minimalk
+
+set.seed(seed)
+perm_out <- MultiCCA.permute(xlist, type=c("standard", "standard", "standard")) 
+
+out <- MultiCCA(xlist, 
+                type=c("standard", "standard", "standard"),
+                penalty=perm_out$bestpenalties,
+                ncomponents= minimalk, # Must be less than or equal to the size of any dimension
+                ws=perm_out$ws.init,
+                standardize=FALSE,  
+)
+
+
+# 1.2 fuse multi-omics data
+mRNAexprCCA <- t(mRNAscaled) %*% out$ws[[1]]
+mRNAexprCCA_2 <- scale(mRNAexprCCA)
+
+dim(out$ws[[2]]) 
+miRNAexprCCA <- t(miRNAscaled) %*% out$ws[[2]]
+miRNAexprCCA_2 <- scale(miRNAexprCCA)
+ 
+dim(out$ws[[3]])  
+methyexprrCCA <- t(methyscaled) %*% out$ws[[3]]
+methyexprrCCA_2 <- scale(methyexprrCCA)
+
+# a1 -- a1 is the weight for mRNA omics
+# a2 -- a2 is the weight for miRNA omics
+# a3 -- a3 is the weight for methylation omics
+fusedMx = a1 * mRNAexprCCA.2 + a2 * miRNAexprCCA.2 + a3 * methyexprrCCA.2 
+
+
+### 2 cancer subtyping using fused multi-omics data
+d = t(scale(fusedMx))
+pItem=0.9
+pam_euclidean = ConsensusClusterPlus(d,maxK=7,reps=1000,pItem=pItem,pFeature=1,
+                                     title="consensus_pam_euclidean",clusterAlg="pam",
+                                     distance="euclidean",seed=0,
+                                     plot="pdf",writeTable=F)
+rcc.ind=5
+label = pam_euclidean[[rcc.ind]]$consensusClass
+
+
+
+```
+
+

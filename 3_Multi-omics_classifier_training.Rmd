@@ -1,0 +1,35 @@
+---
+title: "3_Multi-omics_classifier_training"
+author: "Lingli HE"
+date: "2024-07-31"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r cars}
+rm(list = ls())
+
+require(caret)
+
+
+scaled_fusedMx = scale(fusedMx)
+Data3Label = data.frame(label = as.factor(label), scaled_fusedMx) 
+
+set.seed(123)
+fitControl <- trainControl(method = "none")
+bayes_grid = expand.grid(usekernel = TRUE, laplace = 0, adjust = 1)
+model_fit <- train(label ~ ., data = Data3Label, 
+                   method = 'naive_bayes', 
+                   trControl = fitControl, 
+                   verbose = FALSE, 
+                   tuneGrid = bayes_grid,
+)
+model_fit
+
+  
+```

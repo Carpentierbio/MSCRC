@@ -1,0 +1,72 @@
+---
+title: "1_preprocess_training_data"
+author: "Lingli HE"
+date: "2024-07-31"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r}
+rm(list = ls())
+
+require(dplyr)
+require(tibble)
+
+### 1 feature selection using median absolute deviation (MAD)
+load("mRNAexpr.rda")
+load("miRNAexpr.rda")
+load("methyexpr.rda")
+
+
+# 1.1 mRNA
+## mRNAexpr -- transcript per million (TPM) gene expression with genes in rows and samples in columns
+mRNAlog2 <- log2(mRNAexpr %>% select(-SYMBOL) + 1)
+mRNAmad = apply(mRNAlog2, 1, mad)
+mRNAmadmx = data.frame(mRNAmad = mRNAmad, Symbol = mRNAexpr$SYMBOL, mRNAlog2)
+mRNAmadmx_2 = mRNAmadmx[which(mRNAmadmx$mRNAmad > 1),]  
+rownames(mRNAmadmx_2) = NULL
+mRNAmadExpr = mRNAmadmx_2 %>% select(-mRNAmad) %>% column_to_rownames("Symbol")
+
+
+# 1.2 microRNA
+## mRNAexpr -- reads per million (RPM) gene expression with microRNAs in rows and samples in columns
+miRNAlog2 <- log2(miRNAexpr %>% select(-miRNA_ID) + 1)
+miRNAmad = apply(miRNAlog2, 1, mad)
+miRNAmadmx = data.frame(miRNAmad = miRNAmad, miRNA_ID = miRNAexpr$miRNA_ID, miRNAlog2)
+miRNAmadmx_2 = miRNAmadmx[which(miRNAmadmx$miRNAmad > 0.75),] 
+rownames(miRNAmadmx_2) = NULL
+miRNAmadExpr = miRNAmadmx_2 %>% select(-miRNAmad) %>% column_to_rownames("miRNA_ID")
+
+
+# 1.2 Methylation
+## methyexpr -- DNA methylation beta values with genes in rows and samples in columns
+methymad = apply(methyexpr %>% select(-Gene_Symbol), 1, mad)
+methymadmx = data.frame(methymad = methymad, methyexpr)
+methymadmx_2 = methymadmx[which(methymadmx$methymad > 0.25),] 
+rownames(methymadmx_2) = NULL
+metmadExpr = methymadmx_2 %>% select(-methymad) %>% column_to_rownames("Gene_Symbol")
+
+
+### 2 feature scale
+
+# 2.1 mRNA
+mRNAscaled = t(apply(mRNAmadExpr, 1, scale))  
+colnames(mRNAscaled) = colnames(mRNAmadExpr) 
+
+# 2.2 microRNA
+miRNAscaled = t(apply(miRNAmadExpr, 1, scale))  
+colnames(miRNAscaled) = colnames(miRNAmadExpr)  
+
+# 2.2 Methylation
+methyscaled = t(apply(metmadExpr , 1, scale))  
+colnames(methyscaled) = colnames(metmadExpr )
+
+
+```
+
+
