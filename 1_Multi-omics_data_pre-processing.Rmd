@@ -43,7 +43,7 @@ rownames(miRNAmadmx_2) = NULL
 miRNAmadExpr = miRNAmadmx_2 %>% select(-miRNAmad) %>% column_to_rownames("miRNA_ID")
 
 
-# 1.2 Methylation
+# 1.3 Methylation
 ## methyexpr -- DNA methylation beta values with genes in rows and samples in columns
 methymad = apply(methyexpr %>% select(-Gene_Symbol), 1, mad)
 methymadmx = data.frame(methymad = methymad, methyexpr)
@@ -62,7 +62,7 @@ colnames(mRNAscaled) = colnames(mRNAmadExpr)
 miRNAscaled = t(apply(miRNAmadExpr, 1, scale))  
 colnames(miRNAscaled) = colnames(miRNAmadExpr)  
 
-# 2.2 Methylation
+# 2.3 Methylation
 methyscaled = t(apply(metmadExpr , 1, scale))  
 colnames(methyscaled) = colnames(metmadExpr )
 
