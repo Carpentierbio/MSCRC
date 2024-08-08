@@ -21,7 +21,7 @@ library(openxlsx)
 ### 1 Multi-omics classifier validation
 
 # 1.1 Prepare classifier
-load("multi-omics_classifier.rda")
+load("multi-omics_classifier_NB.RDada")
 model = model_fit
 rm(model_fit)
 
