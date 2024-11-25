@@ -62,7 +62,7 @@ methyexprrCCA_2 <- scale(methyexprrCCA)
 # a1 -- a1 is the weight for mRNA omics
 # a2 -- a2 is the weight for miRNA omics
 # a3 -- a3 is the weight for methylation omics
-fusedMx = a1 * mRNAexprCCA.2 + a2 * miRNAexprCCA.2 + a3 * methyexprrCCA.2 
+fusedMx = a1 * mRNAexprCCA_2 + a2 * miRNAexprCCA_2 + a3 * methyexprrCCA_2 
 
 
 ### 2 cancer subtyping using fused multi-omics data
